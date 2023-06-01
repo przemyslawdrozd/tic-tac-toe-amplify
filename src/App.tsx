@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button, Grid, Flex, View, useTheme } from '@aws-amplify/ui-react'
 import { INIT_BOARD, WIN_PATTERN } from './utils/conts'
+import { withAuthenticator } from '@aws-amplify/ui-react'
 
 const App = () => {
   const [board, setBoard] = useState<string[]>(INIT_BOARD)
@@ -65,4 +66,4 @@ const App = () => {
   )
 }
 
-export default App
+export default withAuthenticator(App)
