@@ -16,45 +16,94 @@ import { INIT_BOARD, WIN_PATTERN } from './utils/conts'
 import { withAuthenticator } from '@aws-amplify/ui-react'
 import { Auth } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
-import { Game } from './models'
+import { Game, LazyGame } from './models'
 
 const App = () => {
   const [player, setPlayer] = useState<'X' | 'O'>('X')
   const [winner, setWinner] = useState<string>('')
   const [games, setGames] = useState<Game[]>([])
   const [username, setUsername] = useState<string>('')
+  const [currentGame, setCurrentGame] = useState<Game | LazyGame | null>(null)
 
-  const board = useRef<string[]>(INIT_BOARD)
+  const handleMove = (index: number) => {
+    if (!currentGame?.Board || winner) return
+    if (currentGame.CurrentPlayer !== player) return
+    const board = [...currentGame?.Board]
 
-  const handleClick = (index: number) => {
-    if (board.current[index] || winner) return
+    if (board[index]) return
+    board[index] = player
 
-    board.current[index] = player
+    DataStore.save(
+      Game.copyOf(currentGame, updated => {
+        updated.Board = board
+        updated.CurrentPlayer = player === 'X' ? 'O' : 'X'
+      }),
+    )
+
     for (let [a, b, c] of WIN_PATTERN) {
-      if (!board.current[a]) continue
-
-      if (
-        board.current[a] === board.current[b] &&
-        board.current[a] === board.current[c]
-      )
-        return setWinner(board.current[a])
+      if (!board[a]) continue
+      if (board[a] === board[b] && board[a] === board[c]) {
+        setWinner(player)
+        return DataStore.save(
+          Game.copyOf(currentGame, updated => {
+            updated.isWinner = player
+          }),
+        )
+      }
     }
-    setPlayer(player === 'X' ? 'O' : 'X')
   }
 
   console.log('player', player)
 
+  // Update Current Game
   useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(({ attributes }) => {
-        setUsername(attributes.email.split('@')[0])
-      })
-      .catch(err => console.log('Err to get user data', err))
+    console.log('check current game')
 
-    DataStore.query(Game)
-      .then(setGames)
-      .catch(err => console.log('Err query game', err))
-  }, [])
+    if (!currentGame) return
+    const subscription = DataStore.observe(Game, currentGame.id).subscribe(
+      msg => {
+        console.log('Current game', msg)
+        setCurrentGame(msg.element)
+        msg.element.isWinner && setWinner(msg.element.isWinner)
+      },
+    )
+
+    return () => subscription.unsubscribe()
+  }, [currentGame])
+
+  useEffect(() => {
+    console.log('restore')
+    const restoreGame = async () => {
+      console.log('restore()')
+      try {
+        const { attributes } = await Auth.currentAuthenticatedUser()
+        setUsername(attributes.email.split('@')[0])
+        Auth.currentAuthenticatedUser()
+
+        const responseGames = await DataStore.query(Game)
+
+        setGames(responseGames)
+
+        for (const game of responseGames) {
+          console.log('sub', attributes.sub)
+          const { PlayerX, PlayerO } = game
+
+          if (attributes.sub === PlayerX) {
+            setCurrentGame(game)
+            setPlayer('X')
+          }
+
+          if (attributes.sub === PlayerO) {
+            setCurrentGame(game)
+            setPlayer('O')
+          }
+        }
+      } catch (err) {
+        console.log('Err restoring game', err)
+      }
+    }
+    currentGame || restoreGame()
+  }, [currentGame])
 
   // const resetGame = () => {
   //   setBoard(INIT_BOARD)
@@ -62,6 +111,7 @@ const App = () => {
   //   setWinner('')
   // }
 
+  // Update Available Games
   useEffect(() => {
     const subscription = DataStore.observe(Game).subscribe(msg => {
       if (msg.opType === 'DELETE') {
@@ -101,9 +151,32 @@ const App = () => {
           CurrentPlayer: 'X',
         }),
       )
+
       console.log('result', result)
+      setCurrentGame(result)
+      setPlayer('X')
     } catch (error) {
       console.log('Err create game', error)
+    }
+  }
+
+  const handleJoin = async (gameId: string) => {
+    try {
+      const original = await DataStore.query(Game, gameId)
+      if (!original) return
+
+      const { attributes } = await Auth.currentAuthenticatedUser()
+
+      const updatedPost = await DataStore.save(
+        Game.copyOf(original, updated => {
+          updated.PlayerO = attributes.sub
+        }),
+      )
+
+      setCurrentGame(updatedPost)
+      setPlayer('O')
+    } catch (err) {
+      console.log('Err to join game', err)
     }
   }
 
@@ -118,11 +191,11 @@ const App = () => {
       </TableHead>
       <TableBody>
         {games.map(game => (
-          <TableRow>
+          <TableRow key={game.id}>
             <TableCell>{game.id.split('-')[0]}</TableCell>
             {/* <TableCell>{game.createdAt}</TableCell> */}
             <TableCell>
-              <Button>Join</Button>
+              <Button onClick={() => handleJoin(game.id)}>Join</Button>
             </TableCell>
           </TableRow>
         ))}
@@ -149,25 +222,32 @@ const App = () => {
         alignItems='stretch'
         height='100w'
         gap='1rem'>
-        <Card variation='elevated'>{username}!</Card>
+        <Card variation='elevated'>
+          {username}: {player}
+        </Card>
+        {currentGame && (
+          <Card variation='elevated'>Game: {currentGame.id}</Card>
+        )}
         <Button size='large' onClick={handleLogOut}>
           Logout
         </Button>
       </Flex>
-      <View height='32rem' width='30rem'>
-        <Grid
-          templateColumns='1fr 1fr 1fr'
-          templateRows='10rem 10rem 10rem'
-          gap={tokens.space.small}>
-          {board.current.map((cell, i) => (
-            <Button size='large' onClick={() => handleClick(i)}>
-              {cell}
-            </Button>
-          ))}
-        </Grid>
-      </View>
+      {currentGame?.Board && (
+        <View height='32rem' width='30rem'>
+          <Grid
+            templateColumns='1fr 1fr 1fr'
+            templateRows='10rem 10rem 10rem'
+            gap={tokens.space.small}>
+            {currentGame.Board.map((cell, i) => (
+              <Button key={i} size='large' onClick={() => handleMove(i)}>
+                {cell}
+              </Button>
+            ))}
+          </Grid>
+        </View>
+      )}
       {winner && <div className='winner'>{`Winner: ${winner}`}</div>}
-      {!winner && board.current.every(value => value) && (
+      {!winner && currentGame?.Board?.every(value => value) && (
         <div className='draw'>It's a draw!</div>
       )}
       <button className='reset-button' onClick={createNewGame}>

@@ -9,5 +9,6 @@ type Game @model @auth(rules: [{allow: public}]) {
   PlayerO: ID
   Board: [String!]
   CurrentPlayer: Player!
+  isWinner: Player
 }
  

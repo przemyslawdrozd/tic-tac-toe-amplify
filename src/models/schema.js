@@ -41,6 +41,15 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
+                "isWinner": {
+                    "name": "isWinner",
+                    "isArray": false,
+                    "type": {
+                        "enum": "Player"
+                    },
+                    "isRequired": false,
+                    "attributes": []
+                },
                 "createdAt": {
                     "name": "createdAt",
                     "isArray": false,
@@ -95,5 +104,5 @@ export const schema = {
     },
     "nonModels": {},
     "codegenVersion": "3.4.3",
-    "version": "fd82618138de593a8689aed8db6afa62"
+    "version": "17517c676bf0f7b450163ccbc0c1b142"
 };
