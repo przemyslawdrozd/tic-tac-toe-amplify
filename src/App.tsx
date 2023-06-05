@@ -19,15 +19,21 @@ import { DataStore } from '@aws-amplify/datastore'
 import { Game, LazyGame } from './models'
 
 const App = () => {
-  const [player, setPlayer] = useState<'X' | 'O'>('X')
+  const [player, setPlayer] = useState<'X' | 'O' | ''>('')
   const [winner, setWinner] = useState<string>('')
   const [games, setGames] = useState<Game[]>([])
   const [username, setUsername] = useState<string>('')
   const [currentGame, setCurrentGame] = useState<Game | LazyGame | null>(null)
+  const [sub, setSub] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const handleMove = (index: number) => {
+    if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(sub)) {
+      return resetGame()
+    }
     if (!currentGame?.Board || winner) return
     if (currentGame.CurrentPlayer !== player) return
+
     const board = [...currentGame?.Board]
 
     if (board[index]) return
@@ -53,47 +59,46 @@ const App = () => {
     }
   }
 
-  console.log('player', player)
-
   // Update Current Game
   useEffect(() => {
     console.log('check current game')
 
     if (!currentGame) return
-    const subscription = DataStore.observe(Game, currentGame.id).subscribe(
-      msg => {
-        console.log('Current game', msg)
-        setCurrentGame(msg.element)
-        msg.element.isWinner && setWinner(msg.element.isWinner)
-      },
-    )
+    const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
+      console.log('Current game', msg)
+      setCurrentGame(msg.element)
+      msg.element.isWinner && setWinner(msg.element.isWinner)
+    })
 
-    return () => subscription.unsubscribe()
+    return () => sub.unsubscribe()
   }, [currentGame])
 
   useEffect(() => {
-    console.log('restore')
-    const restoreGame = async () => {
-      console.log('restore()')
-      try {
-        const { attributes } = await Auth.currentAuthenticatedUser()
+    Auth.currentAuthenticatedUser()
+      .then(({ attributes }) => {
+        setSub(attributes.sub)
         setUsername(attributes.email.split('@')[0])
-        Auth.currentAuthenticatedUser()
+      })
+      .catch(err => console.log('Err to fetch user data', err))
+  }, [])
 
+  useEffect(() => {
+    const restoreGame = async () => {
+      try {
         const responseGames = await DataStore.query(Game)
-
         setGames(responseGames)
 
         for (const game of responseGames) {
-          console.log('sub', attributes.sub)
-          const { PlayerX, PlayerO } = game
+          const { PlayerX, PlayerO, isWinner } = game
 
-          if (attributes.sub === PlayerX) {
+          if (!isWinner) continue
+
+          if (sub === PlayerX) {
             setCurrentGame(game)
             setPlayer('X')
           }
 
-          if (attributes.sub === PlayerO) {
+          if (sub === PlayerO) {
             setCurrentGame(game)
             setPlayer('O')
           }
@@ -103,32 +108,41 @@ const App = () => {
       }
     }
     currentGame || restoreGame()
-  }, [currentGame])
+  }, [currentGame, sub])
 
-  // const resetGame = () => {
-  //   setBoard(INIT_BOARD)
-  //   setPlayer('X')
-  //   setWinner('')
-  // }
+  const resetGame = () => {
+    setPlayer('')
+    setWinner('')
+    setCurrentGame(null)
+  }
 
   // Update Available Games
   useEffect(() => {
     const subscription = DataStore.observe(Game).subscribe(msg => {
-      if (msg.opType === 'DELETE') {
-        return setGames(prevGames =>
-          prevGames.filter(({ id }) => id !== msg.element.id),
+      console.log('msg', msg)
+
+      if (
+        msg.opType === 'DELETE' ||
+        (msg.opType === 'UPDATE' && msg.element.PlayerO)
+      ) {
+        setGames(prevGames =>
+          prevGames?.filter(({ id }) => id !== msg.element.id),
         )
+
+        if (currentGame?.id === msg.element.id) {
+          if (![currentGame.PlayerO, currentGame.PlayerX].includes(sub)) {
+            console.log('Expel player')
+            return setCurrentGame(null)
+          }
+        }
       }
 
-      console.log('DS observe', msg)
       if (msg.opType !== 'INSERT') return
-      console.log('Updated element', msg.element)
       if (games.find(({ id }) => id === msg.element.id)) {
         console.log('Already updated!')
         return
       }
 
-      console.log('update')
       setGames(prevGames => [...prevGames, msg.element])
     })
 
@@ -137,22 +151,20 @@ const App = () => {
 
   const createNewGame = async () => {
     try {
-      const { attributes } = await Auth.currentAuthenticatedUser()
-
-      if (!attributes.sub) {
+      if (!sub) {
         console.log('Err there is no auth user')
         return
       }
 
       const result = await DataStore.save(
         new Game({
-          PlayerX: attributes.sub,
+          PlayerX: sub,
           Board: INIT_BOARD,
           CurrentPlayer: 'X',
         }),
       )
 
-      console.log('result', result)
+      setWinner('')
       setCurrentGame(result)
       setPlayer('X')
     } catch (error) {
@@ -162,17 +174,22 @@ const App = () => {
 
   const handleJoin = async (gameId: string) => {
     try {
-      const original = await DataStore.query(Game, gameId)
-      if (!original) return
+      await DataStore.start()
+      const joinGame = await DataStore.query(Game, gameId)
+      if (!joinGame) return
 
-      const { attributes } = await Auth.currentAuthenticatedUser()
+      if (joinGame?.PlayerO) {
+        console.log('Other player already joined!')
+        return
+      }
 
       const updatedPost = await DataStore.save(
-        Game.copyOf(original, updated => {
-          updated.PlayerO = attributes.sub
+        Game.copyOf(joinGame, updated => {
+          updated.PlayerO = sub
         }),
       )
 
+      setWinner('')
       setCurrentGame(updatedPost)
       setPlayer('O')
     } catch (err) {
@@ -246,14 +263,25 @@ const App = () => {
           </Grid>
         </View>
       )}
-      {winner && <div className='winner'>{`Winner: ${winner}`}</div>}
+      {winner && (
+        <div className='winner'>
+          <p>{`Winner: ${winner}`}</p>
+          <Button size='large' onClick={resetGame}>
+            Reset Game
+          </Button>
+        </div>
+      )}
       {!winner && currentGame?.Board?.every(value => value) && (
         <div className='draw'>It's a draw!</div>
       )}
-      <button className='reset-button' onClick={createNewGame}>
-        Create Game
-      </button>
-      <HighlightExample />
+      {currentGame ? null : (
+        <>
+          <button className='reset-button' onClick={createNewGame}>
+            Create Game
+          </button>
+          <HighlightExample />
+        </>
+      )}
     </Flex>
   )
 }
