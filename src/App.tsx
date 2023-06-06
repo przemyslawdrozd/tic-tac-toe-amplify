@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Button,
   Grid,
@@ -17,15 +17,18 @@ import { withAuthenticator } from '@aws-amplify/ui-react'
 import { Auth } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game, LazyGame } from './models'
+import { useStateContext } from './context/context'
 
 const App = () => {
   const [player, setPlayer] = useState<'X' | 'O' | ''>('')
   const [winner, setWinner] = useState<string>('')
-  const [games, setGames] = useState<Game[]>([])
+  // const [games, setGames] = useState<Game[]>([])
   const [username, setUsername] = useState<string>('')
-  const [currentGame, setCurrentGame] = useState<Game | LazyGame | null>(null)
+  // const [currentGame, setCurrentGame] = useState<Game | LazyGame | null>(null)
   const [sub, setSub] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const { games, setGames, currentGame, setCurrentGame } = useStateContext()
 
   const handleMove = (index: number) => {
     if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(sub)) {
