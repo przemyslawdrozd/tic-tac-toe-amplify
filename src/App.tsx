@@ -16,22 +16,26 @@ import { INIT_BOARD, WIN_PATTERN } from './utils/conts'
 import { withAuthenticator } from '@aws-amplify/ui-react'
 import { Auth } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
-import { Game, LazyGame } from './models'
+import { Game } from './models'
 import { useStateContext } from './context/context'
 
 const App = () => {
-  const [player, setPlayer] = useState<'X' | 'O' | ''>('')
-  const [winner, setWinner] = useState<string>('')
-  // const [games, setGames] = useState<Game[]>([])
-  const [username, setUsername] = useState<string>('')
-  // const [currentGame, setCurrentGame] = useState<Game | LazyGame | null>(null)
-  const [sub, setSub] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const { games, setGames, currentGame, setCurrentGame } = useStateContext()
+  const {
+    games,
+    setGames,
+    currentGame,
+    setCurrentGame,
+    userData,
+    player,
+    winner,
+    setPlayer,
+    setWinner,
+  } = useStateContext()
 
   const handleMove = (index: number) => {
-    if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(sub)) {
+    if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(userData?.id)) {
       return resetGame()
     }
     if (!currentGame?.Board || winner) return
@@ -42,24 +46,22 @@ const App = () => {
     if (board[index]) return
     board[index] = player
 
-    DataStore.save(
-      Game.copyOf(currentGame, updated => {
-        updated.Board = board
-        updated.CurrentPlayer = player === 'X' ? 'O' : 'X'
-      }),
-    )
-
+    let isWinner: boolean = false
     for (let [a, b, c] of WIN_PATTERN) {
       if (!board[a]) continue
       if (board[a] === board[b] && board[a] === board[c]) {
         setWinner(player)
-        return DataStore.save(
-          Game.copyOf(currentGame, updated => {
-            updated.isWinner = player
-          }),
-        )
+        isWinner = true
       }
     }
+
+    DataStore.save(
+      Game.copyOf(currentGame, updated => {
+        updated.Board = board
+        updated.CurrentPlayer = player === 'X' ? 'O' : 'X'
+        if (isWinner) updated.isWinner = player
+      }),
+    )
   }
 
   // Update Current Game
@@ -68,7 +70,6 @@ const App = () => {
 
     if (!currentGame) return
     const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
-      console.log('Current game', msg)
       setCurrentGame(msg.element)
       msg.element.isWinner && setWinner(msg.element.isWinner)
     })
@@ -76,92 +77,22 @@ const App = () => {
     return () => sub.unsubscribe()
   }, [currentGame])
 
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(({ attributes }) => {
-        setSub(attributes.sub)
-        setUsername(attributes.email.split('@')[0])
-      })
-      .catch(err => console.log('Err to fetch user data', err))
-  }, [])
-
-  useEffect(() => {
-    const restoreGame = async () => {
-      try {
-        const responseGames = await DataStore.query(Game)
-        setGames(responseGames)
-
-        for (const game of responseGames) {
-          const { PlayerX, PlayerO, isWinner } = game
-
-          if (!isWinner) continue
-
-          if (sub === PlayerX) {
-            setCurrentGame(game)
-            setPlayer('X')
-          }
-
-          if (sub === PlayerO) {
-            setCurrentGame(game)
-            setPlayer('O')
-          }
-        }
-      } catch (err) {
-        console.log('Err restoring game', err)
-      }
-    }
-    currentGame || restoreGame()
-  }, [currentGame, sub])
-
   const resetGame = () => {
     setPlayer('')
     setWinner('')
     setCurrentGame(null)
   }
 
-  // Update Available Games
-  useEffect(() => {
-    const subscription = DataStore.observe(Game).subscribe(msg => {
-      console.log('msg', msg)
-
-      if (
-        msg.opType === 'DELETE' ||
-        (msg.opType === 'UPDATE' && msg.element.PlayerO)
-      ) {
-        setGames(prevGames =>
-          prevGames?.filter(({ id }) => id !== msg.element.id),
-        )
-
-        if (currentGame?.id === msg.element.id) {
-          if (![currentGame.PlayerO, currentGame.PlayerX].includes(sub)) {
-            console.log('Expel player')
-            return setCurrentGame(null)
-          }
-        }
-      }
-
-      if (msg.opType !== 'INSERT') return
-      if (games.find(({ id }) => id === msg.element.id)) {
-        console.log('Already updated!')
-        return
-      }
-
-      setGames(prevGames => [...prevGames, msg.element])
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
   const createNewGame = async () => {
     try {
-      if (!sub) {
+      if (!userData) {
         console.log('Err there is no auth user')
         return
       }
 
       const result = await DataStore.save(
         new Game({
-          PlayerX: sub,
+          PlayerX: userData.id,
           Board: INIT_BOARD,
           CurrentPlayer: 'X',
         }),
@@ -188,7 +119,7 @@ const App = () => {
 
       const updatedPost = await DataStore.save(
         Game.copyOf(joinGame, updated => {
-          updated.PlayerO = sub
+          updated.PlayerO = userData?.id
         }),
       )
 
@@ -213,7 +144,6 @@ const App = () => {
         {games.map(game => (
           <TableRow key={game.id}>
             <TableCell>{game.id.split('-')[0]}</TableCell>
-            {/* <TableCell>{game.createdAt}</TableCell> */}
             <TableCell>
               <Button onClick={() => handleJoin(game.id)}>Join</Button>
             </TableCell>
@@ -227,6 +157,7 @@ const App = () => {
     await Auth.signOut()
   }
 
+  console.log('currentGame', currentGame)
   const { tokens } = useTheme()
   return (
     <Flex
@@ -243,7 +174,7 @@ const App = () => {
         height='100w'
         gap='1rem'>
         <Card variation='elevated'>
-          {username}: {player}
+          {userData?.username}: {player}
         </Card>
         {currentGame && (
           <Card variation='elevated'>Game: {currentGame.id}</Card>
