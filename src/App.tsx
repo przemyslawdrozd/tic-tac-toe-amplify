@@ -24,7 +24,6 @@ const App = () => {
 
   const {
     games,
-    setGames,
     currentGame,
     setCurrentGame,
     userData,
@@ -64,19 +63,6 @@ const App = () => {
     )
   }
 
-  // Update Current Game
-  useEffect(() => {
-    console.log('check current game')
-
-    if (!currentGame) return
-    const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
-      setCurrentGame(msg.element)
-      msg.element.isWinner && setWinner(msg.element.isWinner)
-    })
-
-    return () => sub.unsubscribe()
-  }, [currentGame])
-
   const resetGame = () => {
     setPlayer('')
     setWinner('')
@@ -108,7 +94,6 @@ const App = () => {
 
   const handleJoin = async (gameId: string) => {
     try {
-      await DataStore.start()
       const joinGame = await DataStore.query(Game, gameId)
       if (!joinGame) return
 
@@ -174,15 +159,25 @@ const App = () => {
         height='100w'
         gap='1rem'>
         <Card variation='elevated'>
-          {userData?.username}: {player}
+          {userData?.username}: {userData?.id.split('-')[0]} :{' '}
+          {player || 'Not selected'}
         </Card>
         {currentGame && (
-          <Card variation='elevated'>Game: {currentGame.id}</Card>
+          <>
+            <Card variation='elevated'>Game: {currentGame.id}</Card>
+            <Card variation='elevated'>PlayerX: {currentGame.PlayerX}</Card>
+            <Card variation='elevated'>PlayerO: {currentGame.PlayerO}</Card>
+          </>
         )}
         <Button size='large' onClick={handleLogOut}>
           Logout
         </Button>
       </Flex>
+      {currentGame && currentGame?.isWinner ? null : (
+        <p>
+          Now is Player <b>{currentGame?.CurrentPlayer} </b> move!
+        </p>
+      )}
       {currentGame?.Board && (
         <View height='32rem' width='30rem'>
           <Grid
@@ -201,7 +196,7 @@ const App = () => {
         <div className='winner'>
           <p>{`Winner: ${winner}`}</p>
           <Button size='large' onClick={resetGame}>
-            Reset Game
+            Leave Room
           </Button>
         </div>
       )}

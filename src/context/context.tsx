@@ -54,7 +54,8 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
 
   // Update Available Games
   useEffect(() => {
-    const subscription = DataStore.observe(Game).subscribe(msg => {
+    const sub = DataStore.observe(Game).subscribe(msg => {
+      console.log('msg', msg)
       if (
         msg.opType === 'DELETE' ||
         (msg.opType === 'UPDATE' && msg.element.PlayerO)
@@ -81,15 +82,34 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
       setGames(prevGames => [...prevGames, msg.element])
     })
 
-    return () => subscription.unsubscribe()
+    return () => sub.unsubscribe()
   }, [])
+
+  // Update Current Game
+  useEffect(() => {
+    console.log('check current game')
+
+    if (!currentGame) return
+    const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
+      setCurrentGame(msg.element)
+      msg.element.isWinner && setWinner(msg.element.isWinner)
+    })
+
+    return () => sub.unsubscribe()
+  }, [currentGame])
 
   useEffect(() => {
     const restoreGame = async () => {
       try {
-        const responseGames = await DataStore.query(Game)
-        setGames(responseGames)
+        if (!userData) return
+        const responseGames = await DataStore.query(Game, g =>
+          g.or(({ PlayerO, PlayerX }) => [
+            PlayerX.eq(userData.id),
+            PlayerO.eq(userData.id),
+          ]),
+        )
 
+        console.log('restoreGame', responseGames.length)
         for (const game of responseGames) {
           const { PlayerX, PlayerO, isWinner } = game
 
@@ -111,6 +131,32 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     }
     currentGame || restoreGame()
   }, [currentGame, userData?.id])
+
+  useEffect(() => {
+    const restoreRooms = async () => {
+      try {
+        const restoredRooms = await DataStore.query(Game, ({ PlayerO }) =>
+          PlayerO.eq(null),
+        )
+        setGames(restoredRooms)
+      } catch (err) {
+        console.log('Err to restore room', err)
+      }
+    }
+    currentGame || restoreRooms()
+  }, [])
+
+  useEffect(() => {
+    if (!currentGame || !userData) return
+    const { id } = userData
+
+    const { PlayerX, PlayerO } = currentGame
+    if (![PlayerX, PlayerO].includes(id)) {
+      console.log('Its not your game!')
+      setCurrentGame(null)
+      setPlayer('')
+    }
+  }, [currentGame])
 
   return (
     <Context.Provider
