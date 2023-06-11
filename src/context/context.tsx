@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { Game, LazyGame } from '../models'
-import { Auth } from 'aws-amplify'
+import { Auth, Hub, Logger } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
 
 type tUserData = {
@@ -18,6 +18,7 @@ interface iCtx {
   setPlayer: React.Dispatch<React.SetStateAction<'X' | 'O' | ''>>
   winner: string
   setWinner: React.Dispatch<React.SetStateAction<string>>
+  resetGame: () => void
 }
 
 const initCtx = {
@@ -30,6 +31,7 @@ const initCtx = {
   setPlayer: () => {},
   winner: '',
   setWinner: () => {},
+  resetGame: () => {},
 }
 
 const Context = createContext<iCtx>(initCtx)
@@ -41,6 +43,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
   const [player, setPlayer] = useState<'X' | 'O' | ''>('')
   const [winner, setWinner] = useState<string>('')
 
+  // Restore logged user
   useEffect(() => {
     Auth.currentAuthenticatedUser()
       .then(({ attributes }) => {
@@ -158,6 +161,23 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     }
   }, [currentGame])
 
+  useEffect(() => {
+    const authListenerHub = Hub.listen('auth', data => {
+      if (data.payload.event === 'signIn') {
+        const { email, sub } = data.payload.data.attributes
+        setUserData({ id: sub, username: email.split('@')[0] })
+      }
+    })
+
+    return () => authListenerHub()
+  }, [])
+
+  const resetGame = () => {
+    setPlayer('')
+    setWinner('')
+    setCurrentGame(null)
+  }
+
   return (
     <Context.Provider
       value={{
@@ -170,6 +190,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
         setPlayer,
         winner,
         setWinner,
+        resetGame,
       }}>
       {children}
     </Context.Provider>
