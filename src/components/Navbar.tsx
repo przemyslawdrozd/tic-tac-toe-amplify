@@ -4,6 +4,10 @@ import { Auth } from 'aws-amplify'
 
 const Navbar = () => {
   const { userData, player, resetGame, currentGame } = useStateContext()
+
+  const isLeaveGame = (): boolean =>
+    !!currentGame?.isWinner || !!currentGame?.Board?.every(v => v)
+
   return (
     <Flex direction='row' justifyContent='space-between' width='90vw'>
       <Flex direction='column' justifyContent='flex-start'>
@@ -11,7 +15,7 @@ const Navbar = () => {
         <Heading level={4}>You: {player || 'Not selected'}</Heading>
       </Flex>
       <Flex direction='row'>
-        {currentGame?.isWinner && (
+        {isLeaveGame() && (
           <Button size='large' onClick={resetGame}>
             Leave Room
           </Button>

@@ -37,6 +37,24 @@ const GameDetails = () => {
     }
   }
 
+  const CurrentGameInfo = (): JSX.Element => {
+    if (!currentGame) return <></>
+
+    if (!winner && currentGame?.Board?.every(v => v)) {
+      return <p>It's a draw!</p>
+    }
+
+    if (currentGame.isWinner && winner) {
+      return <p>Winner is {winner}!</p>
+    }
+
+    return (
+      <p>
+        Now is Player <b>{currentGame.CurrentPlayer} </b> move!
+      </p>
+    )
+  }
+
   return (
     <Flex
       direction='row'
@@ -48,24 +66,7 @@ const GameDetails = () => {
           <Card variation='elevated' width='25vw'>
             PlayerX: {currentGame.PlayerX.split('-')[0]}
           </Card>
-          {currentGame.isWinner ? (
-            <>
-              {winner && (
-                <div>
-                  <p>{`Winner is ${winner}!`}</p>
-                </div>
-              )}
-            </>
-          ) : (
-            currentGame?.CurrentPlayer && (
-              <p>
-                Now is Player <b>{currentGame.CurrentPlayer} </b> move!
-              </p>
-            )
-          )}
-          {!winner && currentGame?.Board?.every(value => value) && (
-            <div>It's a draw!</div>
-          )}
+          <CurrentGameInfo />
           <Card variation='elevated' width='25vw'>
             PlayerO:{' '}
             {currentGame?.PlayerO?.split('-')[0] || 'Waiting to join..'}

@@ -5,7 +5,6 @@ import {
   TableCell,
   TableBody,
   Button,
-  Loader,
 } from '@aws-amplify/ui-react'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
@@ -21,7 +20,6 @@ const AvailableGames = () => {
       if (!joinGame) return
 
       if (joinGame?.PlayerO) {
-        console.log('Other player already joined!')
         alert('Other player already joined!')
         return
       }

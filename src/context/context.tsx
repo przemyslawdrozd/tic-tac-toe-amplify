@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { Game, LazyGame } from '../models'
-import { Auth, Hub, Logger } from 'aws-amplify'
+import { Auth, Hub } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
 
 type tUserData = {
@@ -101,6 +101,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     return () => sub.unsubscribe()
   }, [currentGame])
 
+  // Restore Current Game
   useEffect(() => {
     const restoreGame = async () => {
       try {
@@ -112,11 +113,10 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
           ]),
         )
 
-        console.log('restoreGame', responseGames.length)
         for (const game of responseGames) {
-          const { PlayerX, PlayerO, isWinner } = game
+          const { PlayerX, PlayerO, isWinner, Board } = game
 
-          if (isWinner) continue
+          if (isWinner || Board?.every(v => v)) continue
 
           if (userData?.id === PlayerX) {
             setCurrentGame(game)
@@ -135,6 +135,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     currentGame || restoreGame()
   }, [currentGame, userData?.id])
 
+  // Restore Available Games
   useEffect(() => {
     const restoreRooms = async () => {
       try {
@@ -149,6 +150,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     currentGame || restoreRooms()
   }, [])
 
+  // Check is valid current game
   useEffect(() => {
     if (!currentGame || !userData) return
     const { id } = userData
@@ -161,6 +163,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     }
   }, [currentGame])
 
+  // Auth login Hub Listener
   useEffect(() => {
     const authListenerHub = Hub.listen('auth', data => {
       if (data.payload.event === 'signIn') {

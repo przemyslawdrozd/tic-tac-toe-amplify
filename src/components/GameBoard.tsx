@@ -1,17 +1,16 @@
-import { Button, Card, Grid, View, Flex } from '@aws-amplify/ui-react'
+import { Button, Card, Grid, View } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
 import { WIN_PATTERN } from '../utils/conts'
 
 const GameBoard = () => {
-  const { currentGame, resetGame, setWinner, userData, player, winner } =
-    useStateContext()
+  const { currentGame, setWinner, player, winner } = useStateContext()
 
   const handleMove = (index: number) => {
-    if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(userData?.id)) {
-      return resetGame()
-    }
+    // if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(userData?.id)) {
+    //   return resetGame()
+    // }
     if (!currentGame?.Board || winner) return
     if (currentGame.CurrentPlayer !== player) return
 
