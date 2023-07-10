@@ -1,18 +1,18 @@
-import { Button, Flex, Heading } from '@aws-amplify/ui-react'
+import { Button, Flex, Heading, Image } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { Auth } from 'aws-amplify'
+import logo from '../assets/tix-tac-toe-logo.svg'
 
 const Navbar = () => {
   const { userData, player, resetGame, currentGame } = useStateContext()
 
   const isLeaveGame = (): boolean =>
-    !!currentGame?.isWinner || !!currentGame?.Board?.every(v => v)
+    !!currentGame?.IsWinner || !!currentGame?.Board?.every(v => v)
 
   return (
     <Flex direction='row' justifyContent='space-between' width='90vw'>
       <Flex direction='column' justifyContent='flex-start'>
-        <Heading level={3}>My Id: {userData?.id.split('-')[0]}</Heading>
-        <Heading level={4}>You: {player || 'Not selected'}</Heading>
+        <Image alt='logo' src={logo} />
       </Flex>
       <Flex direction='row'>
         {isLeaveGame() && (
@@ -20,7 +20,13 @@ const Navbar = () => {
             Leave Room
           </Button>
         )}
-        <Button size='large' onClick={() => Auth.signOut()}>
+        <Heading level={4}>You: {player || 'Not selected'}</Heading>
+        <Button
+          style={{ borderRadius: '20px' }}
+          backgroundColor='#f2f2f2'
+          color='#6a74ad'
+          size='large'
+          onClick={() => Auth.signOut()}>
           Logout
         </Button>
       </Flex>
