@@ -1,8 +1,11 @@
-import { Flex, Card, Button, Loader } from '@aws-amplify/ui-react'
+import { Flex, Card, Button, Loader, Image } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
 import { INIT_BOARD } from '../utils/conts'
+
+import X from '../assets/X-player.svg'
+import O from '../assets/O-player.svg'
 
 const GameDetails = () => {
   const {
@@ -44,7 +47,7 @@ const GameDetails = () => {
       return <p>It's a draw!</p>
     }
 
-    if (currentGame.isWinner && winner) {
+    if (currentGame.IsWinner && winner) {
       return <p>Winner is {winner}!</p>
     }
 
@@ -62,17 +65,29 @@ const GameDetails = () => {
       alignItems='stretch'
       height='100w'>
       {currentGame ? (
-        <>
-          <Card variation='elevated' width='25vw'>
-            PlayerX: {currentGame.PlayerX.split('-')[0]}
-          </Card>
+        <Flex alignContent='center'>
+          <p
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            <Image width='50%' height='50%' alt='cell' src={X} />
+            {currentGame?.PlayerX?.split('-')[0]}
+          </p>
           <CurrentGameInfo />
-          <Card variation='elevated' width='25vw'>
-            PlayerO:{' '}
-            {currentGame?.PlayerO?.split('-')[0] || 'Waiting to join..'}
-            {currentGame?.PlayerO ? null : <Loader variation='linear' />}
-          </Card>
-        </>
+          <p
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            {currentGame.PlayerO?.split('-')[0] || (
+              <Loader variation='linear' />
+            )}
+            <Image width='50%' height='50%' alt='cell' src={O} />
+          </p>
+        </Flex>
       ) : (
         <Button onClick={createNewGame}>Create Game</Button>
       )}
