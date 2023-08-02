@@ -1,4 +1,4 @@
-import { Flex, Card, Button, Loader, Image } from '@aws-amplify/ui-react'
+import { Flex, Card, Loader, Image } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
@@ -6,6 +6,8 @@ import { INIT_BOARD } from '../utils/conts'
 
 import X from '../assets/X-player.svg'
 import O from '../assets/O-player.svg'
+import '../index.css'
+import { CreateButton } from './StyledComponents'
 
 const GameDetails = () => {
   const {
@@ -89,7 +91,7 @@ const GameDetails = () => {
           </p>
         </Flex>
       ) : (
-        <Button onClick={createNewGame}>Create Game</Button>
+        <CreateButton onClick={createNewGame}>Create Game</CreateButton>
       )}
     </Flex>
   )

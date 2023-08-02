@@ -66,7 +66,6 @@ const GameBoard = () => {
               ))}
             </Grid>
           </Card>
-          {/* <Card variation='elevated'>Game: {currentGame.id}</Card> */}
         </View>
       ) : null}
     </>
