@@ -35,7 +35,12 @@ const AvailableGames = () => {
   return (
     <>
       {currentGame ? null : (
-        <Card variation='outlined' margin='0 10vw' borderRadius='12px'>
+        <Card
+          variation='outlined'
+          margin='2vh 10vw'
+          borderRadius='12px'
+          backgroundColor='#f4f6f5'
+          boxShadow='0px 0px 27px -2px rgba(66, 68, 90, 1)'>
           <Collection
             items={games}
             type='list'
@@ -48,7 +53,11 @@ const AvailableGames = () => {
                 key={index}
                 borderRadius='medium'
                 maxWidth='20rem'
-                variation='outlined'>
+                variation='outlined'
+                border='none'
+                margin='12px 24px'
+                backgroundColor='#f4f6f5'
+                boxShadow='2px 2px 15px -8px rgba(66, 68, 90, 1)'>
                 <View padding='xs'>
                   <RoomTitle padding='medium'>Room {index + 1}</RoomTitle>
                   <Divider padding='xs' />

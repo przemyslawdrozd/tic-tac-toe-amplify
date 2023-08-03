@@ -9,8 +9,12 @@ export const CreateButton = styled(Button)`
 `
 
 export const JoinButton = styled(Button)`
+  background-color: #f2f2f2;
   border-radius: 24px;
-  color: #f2f2f2;
+  color: #f47d0b;
+  width: 70%;
+  margin-left: 15%;
+  box-shadow: 8px 11px 20px -13px rgba(66, 68, 90, 1);
 `
 
 export const RoomTitle = styled(Heading)`
