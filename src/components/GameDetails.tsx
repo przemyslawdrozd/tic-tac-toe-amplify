@@ -1,4 +1,4 @@
-import { Flex, Card, Loader, Image } from '@aws-amplify/ui-react'
+import { Flex, Loader, Image } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'

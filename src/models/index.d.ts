@@ -15,11 +15,11 @@ type EagerGame = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly id: string;
-  readonly PlayerX: string;
+  readonly PlayerX?: string | null;
   readonly PlayerO?: string | null;
-  readonly Board?: string[] | null;
+  readonly Board?: (string | null)[] | null;
+  readonly IsWinner?: Player | keyof typeof Player | null;
   readonly CurrentPlayer: Player | keyof typeof Player;
-  readonly isWinner?: Player | keyof typeof Player | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -30,11 +30,11 @@ type LazyGame = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly id: string;
-  readonly PlayerX: string;
+  readonly PlayerX?: string | null;
   readonly PlayerO?: string | null;
-  readonly Board?: string[] | null;
+  readonly Board?: (string | null)[] | null;
+  readonly IsWinner?: Player | keyof typeof Player | null;
   readonly CurrentPlayer: Player | keyof typeof Player;
-  readonly isWinner?: Player | keyof typeof Player | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }

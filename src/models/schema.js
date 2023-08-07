@@ -13,14 +13,14 @@ export const schema = {
                 "PlayerX": {
                     "name": "PlayerX",
                     "isArray": false,
-                    "type": "ID",
-                    "isRequired": true,
+                    "type": "String",
+                    "isRequired": false,
                     "attributes": []
                 },
                 "PlayerO": {
                     "name": "PlayerO",
                     "isArray": false,
-                    "type": "ID",
+                    "type": "String",
                     "isRequired": false,
                     "attributes": []
                 },
@@ -28,9 +28,18 @@ export const schema = {
                     "name": "Board",
                     "isArray": true,
                     "type": "String",
-                    "isRequired": true,
+                    "isRequired": false,
                     "attributes": [],
                     "isArrayNullable": true
+                },
+                "IsWinner": {
+                    "name": "IsWinner",
+                    "isArray": false,
+                    "type": {
+                        "enum": "Player"
+                    },
+                    "isRequired": false,
+                    "attributes": []
                 },
                 "CurrentPlayer": {
                     "name": "CurrentPlayer",
@@ -39,15 +48,6 @@ export const schema = {
                         "enum": "Player"
                     },
                     "isRequired": true,
-                    "attributes": []
-                },
-                "isWinner": {
-                    "name": "isWinner",
-                    "isArray": false,
-                    "type": {
-                        "enum": "Player"
-                    },
-                    "isRequired": false,
                     "attributes": []
                 },
                 "createdAt": {
@@ -104,5 +104,5 @@ export const schema = {
     },
     "nonModels": {},
     "codegenVersion": "3.4.3",
-    "version": "17517c676bf0f7b450163ccbc0c1b142"
+    "version": "01eca2cae8563a6f6ca24332e6519ef3"
 };

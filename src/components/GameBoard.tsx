@@ -2,7 +2,7 @@ import { Button, Grid, View, Image, Card } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
-import { WIN_PATTERN } from '../utils/conts'
+import { WIN_PATTERN, getBorderStyle } from '../utils/conts'
 import X from '../assets/X-player.svg'
 import O from '../assets/O-player.svg'
 
@@ -34,17 +34,6 @@ const GameBoard = () => {
         if (isWinner) updated.IsWinner = player
       }),
     )
-  }
-
-  const getBorderStyle = (i: number) => {
-    if (i === 0) return { borderTop: 'none', borderLeft: 'none' }
-    if (i === 1) return { borderTop: 'none' }
-    if (i === 2) return { borderTop: 'none', borderRight: 'none' }
-    if (i === 3) return { borderLeft: 'none' }
-    if (i === 5) return { borderRight: 'none' }
-    if (i === 6) return { borderLeft: 'none', borderBottom: 'none' }
-    if (i === 7) return { borderBottom: 'none' }
-    if (i === 8) return { borderRight: 'none', borderBottom: 'none' }
   }
 
   return (
