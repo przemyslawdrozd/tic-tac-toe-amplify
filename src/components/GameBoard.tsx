@@ -5,6 +5,7 @@ import { Game } from '../models'
 import { WIN_PATTERN, getBorderStyle } from '../utils/conts'
 import X from '../assets/X-player.svg'
 import O from '../assets/O-player.svg'
+import '../App.css'
 
 const GameBoard = () => {
   const { currentGame, setWinner, player, winner } = useStateContext()
@@ -44,6 +45,7 @@ const GameBoard = () => {
             <Grid templateColumns='1fr 1fr 1fr' templateRows='20vh 20vh 20vh'>
               {currentGame.Board.map((cell, i) => (
                 <Button
+                  className='cell-button'
                   borderRadius='0px'
                   style={getBorderStyle(i)}
                   backgroundColor={currentGame.IsWinner ? 'gray' : 'white'}

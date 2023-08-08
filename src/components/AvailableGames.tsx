@@ -40,7 +40,8 @@ const AvailableGames = () => {
           margin='2vh 10vw'
           borderRadius='12px'
           backgroundColor='#f4f6f5'
-          boxShadow='0px 0px 27px -2px rgba(66, 68, 90, 1)'>
+          border='none'
+          boxShadow='0px 0px 15px -5px rgba(66, 68, 90, 1)'>
           <Collection
             items={games}
             type='list'
@@ -57,11 +58,13 @@ const AvailableGames = () => {
                 border='none'
                 margin='12px 24px'
                 backgroundColor='#f4f6f5'
-                boxShadow='2px 2px 15px -8px rgba(66, 68, 90, 1)'>
+                boxShadow='2px 2px 10px -2px rgba(66, 68, 90, 1)'>
                 <View padding='xs'>
                   <RoomTitle padding='medium'>Room {index + 1}</RoomTitle>
                   <Divider padding='xs' />
-                  <Heading padding='medium'>{item.id.split('-')[0]}</Heading>
+                  <Heading padding='medium'>
+                    Id: {item.id.split('-')[0]}
+                  </Heading>
                   <JoinButton
                     variation='primary'
                     isFullWidth
