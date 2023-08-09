@@ -1,16 +1,16 @@
-import { Button, Card, Grid, View } from '@aws-amplify/ui-react'
+import { Button, Grid, View, Image, Card } from '@aws-amplify/ui-react'
 import { useStateContext } from '../context/context'
 import { DataStore } from '@aws-amplify/datastore'
 import { Game } from '../models'
-import { WIN_PATTERN } from '../utils/conts'
+import { WIN_PATTERN, getBorderStyle } from '../utils/conts'
+import X from '../assets/X-player.svg'
+import O from '../assets/O-player.svg'
+import '../App.css'
 
 const GameBoard = () => {
   const { currentGame, setWinner, player, winner } = useStateContext()
 
   const handleMove = (index: number) => {
-    // if (![currentGame?.PlayerO, currentGame?.PlayerX].includes(userData?.id)) {
-    //   return resetGame()
-    // }
     if (!currentGame?.Board || winner) return
     if (currentGame.CurrentPlayer !== player) return
 
@@ -32,7 +32,7 @@ const GameBoard = () => {
       Game.copyOf(currentGame, updated => {
         updated.Board = board
         updated.CurrentPlayer = player === 'X' ? 'O' : 'X'
-        if (isWinner) updated.isWinner = player
+        if (isWinner) updated.IsWinner = player
       }),
     )
   }
@@ -41,18 +41,22 @@ const GameBoard = () => {
     <>
       {currentGame?.Board ? (
         <View width='90vw' maxWidth={600}>
-          <Grid templateColumns='1fr 1fr 1fr' templateRows='20vh 20vh 20vh'>
-            {currentGame.Board.map((cell, i) => (
-              <Button
-                backgroundColor={currentGame.isWinner ? 'gray' : 'white'}
-                key={i}
-                size='large'
-                onClick={() => handleMove(i)}>
-                {cell}
-              </Button>
-            ))}
-          </Grid>
-          <Card variation='elevated'>Game: {currentGame.id}</Card>
+          <Card style={{ borderRadius: '15px' }}>
+            <Grid templateColumns='1fr 1fr 1fr' templateRows='20vh 20vh 20vh'>
+              {currentGame.Board.map((cell, i) => (
+                <Button
+                  className='cell-button'
+                  borderRadius='0px'
+                  style={getBorderStyle(i)}
+                  backgroundColor={currentGame.IsWinner ? 'gray' : 'white'}
+                  key={i}
+                  size='large'
+                  onClick={() => handleMove(i)}>
+                  {cell ? <Image alt='cell' src={cell === 'X' ? X : O} /> : ''}
+                </Button>
+              ))}
+            </Grid>
+          </Card>
         </View>
       ) : null}
     </>

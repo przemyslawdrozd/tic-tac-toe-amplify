@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="88.669" height="88.669" viewBox="0 0 88.669 88.669">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.5" x2="0.5" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#f58007"/>
+      <stop offset="1" stop-color="#ee495f"/>
+    </linearGradient>
+    <filter id="Union_2" x="0" y="0" width="88.669" height="88.669" filterUnits="userSpaceOnUse">
+      <feOffset dx="4" dy="3" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-opacity="0.161"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, 0, 0)" filter="url(#Union_2)">
+    <path id="Union_2-2" data-name="Union 2" d="M55.155,72.125,40.305,57.276,25.456,72.125a12,12,0,0,1-16.97-16.97l14.85-14.85L8.485,25.456a12,12,0,0,1,16.97-16.97l14.85,14.85,14.85-14.85a12,12,0,0,1,16.97,16.971L57.276,40.305,72.125,55.155a12,12,0,1,1-16.97,16.97Z" transform="translate(0.03 1.03)" fill="url(#linear-gradient)"/>
+  </g>
+</svg>

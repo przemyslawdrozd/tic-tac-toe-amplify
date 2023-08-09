@@ -9,13 +9,11 @@ const App = () => {
   return (
     <Flex direction='column' alignItems='center'>
       <Navbar />
-      <Divider orientation='horizontal' />
       <GameDetails />
-      <Divider orientation='horizontal' />
       <GameBoard />
       <AvailableGames />
     </Flex>
   )
 }
 
-export default withAuthenticator(App)
+export default App

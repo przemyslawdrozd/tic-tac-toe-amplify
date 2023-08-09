@@ -1,5 +1,0 @@
-{
-  "AppSyncApiName": "TicTacToe",
-  "DynamoDBBillingMode": "PAY_PER_REQUEST",
-  "DynamoDBEnableServerSideEncryption": false
-}
