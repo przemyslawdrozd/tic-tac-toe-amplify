@@ -14,3 +14,13 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
+/* .colorful-button:focus {
+  box-shadow: none;
+  border-color: none;
+} */
+
+.amplify-button:focus {
+  box-shadow: none;
+  border-color: none;
+}
