@@ -1,9 +1,12 @@
-import { Flex, Divider } from '@aws-amplify/ui-react'
-import { withAuthenticator } from '@aws-amplify/ui-react'
+import { Flex, withAuthenticator } from '@aws-amplify/ui-react'
 import Navbar from './components/Navbar'
 import GameBoard from './components/GameBoard'
 import GameDetails from './components/GameDetails'
 import AvailableGames from './components/AvailableGames'
+import { Amplify } from 'aws-amplify'
+import awsExports from './aws-exports'
+
+Amplify.configure(awsExports)
 
 const App = () => {
   return (
@@ -16,4 +19,4 @@ const App = () => {
   )
 }
 
-export default App
+export default withAuthenticator(App)

@@ -19,7 +19,7 @@ type EagerGame = {
   readonly PlayerO?: string | null;
   readonly Board?: (string | null)[] | null;
   readonly IsWinner?: Player | keyof typeof Player | null;
-  readonly CurrentPlayer: Player | keyof typeof Player;
+  readonly CurrentPlayer?: Player | keyof typeof Player | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -34,7 +34,7 @@ type LazyGame = {
   readonly PlayerO?: string | null;
   readonly Board?: (string | null)[] | null;
   readonly IsWinner?: Player | keyof typeof Player | null;
-  readonly CurrentPlayer: Player | keyof typeof Player;
+  readonly CurrentPlayer?: Player | keyof typeof Player | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }

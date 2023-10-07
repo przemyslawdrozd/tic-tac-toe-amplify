@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { Game, LazyGame } from '../models'
 // import { Auth, Hub } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
-import { isAvailableGameValid } from '../utils/validate'
+// import { isAvailableGameValid } from '../utils/validate'
 import { INIT_BOARD } from '../utils/conts'
 
 type tUserData = {
@@ -78,19 +78,19 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
   useEffect(() => {
     const sub = DataStore.observe(Game).subscribe(msg => {
       console.log('msg', msg)
-      if (!isAvailableGameValid(msg)) {
-        setGames(prevGames =>
-          prevGames?.filter(({ id }) => id !== msg.element.id),
-        )
+      // if (!isAvailableGameValid(msg)) {
+      setGames(prevGames =>
+        prevGames?.filter(({ id }) => id !== msg.element.id),
+      )
 
-        // if (currentGame?.id === msg.element.id) {
-        //   if (
-        //     ![currentGame.PlayerO, currentGame.PlayerX].includes(userData?.id)
-        //   ) {
-        //     return setCurrentGame(null)
-        //   }
-        // }
-      }
+      // if (currentGame?.id === msg.element.id) {
+      //   if (
+      //     ![currentGame.PlayerO, currentGame.PlayerX].includes(userData?.id)
+      //   ) {
+      //     return setCurrentGame(null)
+      //   }
+      // }
+      // }
 
       if (msg.opType !== 'INSERT') return
       if (games.find(({ id }) => id === msg.element.id)) {
@@ -111,7 +111,7 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
     if (!currentGame) return
     const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
       setCurrentGame(msg.element)
-      msg.element.isWinner && setWinner(msg.element.isWinner)
+      msg.element.IsWinner && setWinner(msg.element.IsWinner)
     })
 
     return () => sub.unsubscribe()

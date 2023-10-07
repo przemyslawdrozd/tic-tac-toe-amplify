@@ -47,7 +47,7 @@ export const schema = {
                     "type": {
                         "enum": "Player"
                     },
-                    "isRequired": true,
+                    "isRequired": false,
                     "attributes": []
                 },
                 "createdAt": {
@@ -103,6 +103,6 @@ export const schema = {
         }
     },
     "nonModels": {},
-    "codegenVersion": "3.4.3",
-    "version": "01eca2cae8563a6f6ca24332e6519ef3"
+    "codegenVersion": "3.4.4",
+    "version": "4ea52d37c471a13c3434b5a073a6bfb8"
 };

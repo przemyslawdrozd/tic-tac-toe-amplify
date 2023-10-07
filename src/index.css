@@ -15,10 +15,11 @@
   -webkit-text-size-adjust: 100%;
 }
 
-/* .colorful-button:focus {
+.cell-button {
   box-shadow: none;
-  border-color: none;
-} */
+  outline: 0;
+  border: 1;
+}
 
 .amplify-button:focus {
   box-shadow: none;

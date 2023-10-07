@@ -5,7 +5,7 @@ import logo from '../assets/tix-tac-toe-logo.svg'
 import { LogoutButton } from './StyledComponents'
 
 const Navbar = () => {
-  const { userData, player, resetGame, currentGame } = useStateContext()
+  const { player, resetGame, currentGame } = useStateContext()
 
   const isLeaveGame = (): boolean =>
     !!currentGame?.IsWinner || !!currentGame?.Board?.every(v => v)
