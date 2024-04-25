@@ -35,6 +35,7 @@ const GameDetails = () => {
       )
 
       setWinner('')
+      console.log('DataStore res', result)
       setCurrentGame(result)
       setPlayer('X')
     } catch (error) {

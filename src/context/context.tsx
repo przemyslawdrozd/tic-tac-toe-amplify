@@ -1,8 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { Game, LazyGame } from '../models'
-// import { Auth, Hub } from 'aws-amplify'
+import { Auth, Hub } from 'aws-amplify'
 import { DataStore } from '@aws-amplify/datastore'
-// import { isAvailableGameValid } from '../utils/validate'
 import { INIT_BOARD } from '../utils/conts'
 
 type tUserData = {
@@ -45,34 +44,34 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
   const [player, setPlayer] = useState<'X' | 'O' | ''>('')
   const [winner, setWinner] = useState<string>('')
 
-  useEffect(() => {
-    const mockGame = () => {
-      return Array(9).fill(
-        new Game({
-          PlayerX: `${Math.random() * 0.001}123`,
-          Board: INIT_BOARD,
-          CurrentPlayer: 'X',
-        }),
-      )
-    }
+  // useEffect(() => {
+  //   const mockGame = () => {
+  //     return Array(9).fill(
+  //       new Game({
+  //         PlayerX: `${Math.random() * 0.001}123`,
+  //         Board: INIT_BOARD,
+  //         CurrentPlayer: 'X',
+  //       }),
+  //     )
+  //   }
 
-    setUserData({ username: 'username', id: '123' })
-    console.log('mockgamr', mockGame())
-    // setGames(mockGame())
-    setCurrentGame(mockGame()[0])
-  }, [])
+  //   setUserData({ username: 'username', id: '123' })
+  //   console.log('mockgamr', mockGame())
+  //   // setGames(mockGame())
+  //   setCurrentGame(mockGame()[0])
+  // }, [])
 
   // Restore logged user
-  // useEffect(() => {
-  //   Auth.currentAuthenticatedUser()
-  //     .then(({ attributes }) => {
-  //       setUserData({
-  //         username: attributes.email.split('@')[0],
-  //         id: attributes.sub,
-  //       })
-  //     })
-  //     .catch(err => console.log('Err to fetch user data', err))
-  // }, [])
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then(({ attributes }) => {
+        setUserData({
+          username: attributes.email.split('@')[0],
+          id: attributes.sub,
+        })
+      })
+      .catch(err => console.log('Err to fetch user data', err))
+  }, [])
 
   // Update Available Games
   useEffect(() => {
@@ -83,14 +82,14 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
         prevGames?.filter(({ id }) => id !== msg.element.id),
       )
 
-      // if (currentGame?.id === msg.element.id) {
-      //   if (
-      //     ![currentGame.PlayerO, currentGame.PlayerX].includes(userData?.id)
-      //   ) {
-      //     return setCurrentGame(null)
-      //   }
-      // }
-      // }
+      if (currentGame?.id === msg.element.id) {
+        if (
+          ![currentGame.PlayerO, currentGame.PlayerX].includes(userData?.id)
+        ) {
+          return setCurrentGame(null)
+        }
+      }
+      
 
       if (msg.opType !== 'INSERT') return
       if (games.find(({ id }) => id === msg.element.id)) {
@@ -106,10 +105,11 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
 
   // Update Current Game
   useEffect(() => {
-    console.log('check current game')
+    console.log('check current game', currentGame)
 
     if (!currentGame) return
     const sub = DataStore.observe(Game, currentGame.id).subscribe(msg => {
+      console.log('Observe msg', msg)
       setCurrentGame(msg.element)
       msg.element.IsWinner && setWinner(msg.element.IsWinner)
     })
@@ -118,78 +118,84 @@ export const StateContext = ({ children }: { children: JSX.Element }) => {
   }, [currentGame])
 
   // Restore Current Game
-  // useEffect(() => {
-  //   const restoreGame = async () => {
-  //     try {
-  //       if (!userData) return
-  //       const responseGames = await DataStore.query(Game, g =>
-  //         g.or(({ PlayerO, PlayerX }) => [
-  //           PlayerX.eq(userData.id),
-  //           PlayerO.eq(userData.id),
-  //         ]),
-  //       )
+  useEffect(() => {
+    const restoreGame = async () => {
+      try {
+        console.log('restoreGame', userData?.username)
+        if (!userData) return
+        const responseGames = await DataStore.query(Game, g =>
+          g.or(({ PlayerO, PlayerX }) => [
+            PlayerX.eq(userData.id),
+            PlayerO.eq(userData.id),
+          ]),
+        )
 
-  //       for (const game of responseGames) {
-  //         const { PlayerX, PlayerO, isWinner, Board } = game
+        console.log('responseGames', responseGames)
+        for (const game of responseGames) {
+          const { PlayerX, PlayerO, IsWinner, Board } = game
 
-  //         if (isWinner || Board?.every(v => v)) continue
+          if (IsWinner || Board?.every(v => v)) continue
 
-  //         if (userData?.id === PlayerX) {
-  //           setCurrentGame(game)
-  //           setPlayer('X')
-  //         }
+          //@ts-ignore
+          if (!game._version) continue 
 
-  //         if (userData?.id === PlayerO) {
-  //           setCurrentGame(game)
-  //           setPlayer('O')
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.log('Err restoring game', err)
-  //     }
-  //   }
-  //   currentGame || restoreGame()
-  // }, [currentGame, userData?.id])
+          console.log('move forward')
+          if (userData?.id === PlayerX) {
+            setCurrentGame(game)
+            setPlayer('X')
+          }
+
+          if (userData?.id === PlayerO) {
+            setCurrentGame(game)
+            setPlayer('O')
+          }
+        }
+      } catch (err) {
+        console.log('Err restoring game', err)
+      }
+    }
+    currentGame || restoreGame()
+  }, [currentGame, userData?.id])
 
   // Restore Available Games
-  // useEffect(() => {
-  //   const restoreRooms = async () => {
-  //     try {
-  //       const restoredRooms = await DataStore.query(Game, ({ PlayerO }) =>
-  //         PlayerO.eq(null),
-  //       )
-  //       setGames(restoredRooms)
-  //     } catch (err) {
-  //       console.log('Err to restore room', err)
-  //     }
-  //   }
-  //   currentGame || restoreRooms()
-  // }, [])
+  useEffect(() => {
+    const restoreRooms = async () => {
+      try {
+        const restoredRooms = await DataStore.query(Game, ({ PlayerO }) =>
+          PlayerO.eq(null),
+        )
+        setGames(restoredRooms)
+      } catch (err) {
+        console.log('Err to restore room', err)
+      }
+    }
+    currentGame || restoreRooms()
+  }, [])
 
   // Check is valid current game
-  // useEffect(() => {
-  //   if (!currentGame || !userData) return
-  //   const { id } = userData
+  useEffect(() => {
+    if (!currentGame || !userData) return
+    const { id } = userData
 
-  //   const { PlayerX, PlayerO } = currentGame
-  //   if (![PlayerX, PlayerO].includes(id)) {
-  //     console.log('Its not your game!')
-  //     setCurrentGame(null)
-  //     setPlayer('')
-  //   }
-  // }, [currentGame])
+    const { PlayerX, PlayerO } = currentGame
+    if (![PlayerX, PlayerO].includes(id)) {
+      console.log('Its not your game!')
+      setCurrentGame(null)
+      setPlayer('')
+    }
+  }, [currentGame])
 
   // Auth login Hub Listener
-  // useEffect(() => {
-  //   const authListenerHub = Hub.listen('auth', data => {
-  //     if (data.payload.event === 'signIn') {
-  //       const { email, sub } = data.payload.data.attributes
-  //       setUserData({ id: sub, username: email.split('@')[0] })
-  //     }
-  //   })
+  useEffect(() => {
+    const authListenerHub = Hub.listen('auth', data => {
+      if (data.payload.event === 'signIn') {
+        const { email, sub } = data.payload.data.attributes
+        setUserData({ id: sub, username: email.split('@')[0] })
+      }
+    })
 
-  //   return () => authListenerHub()
-  // }, [])
+    return () => authListenerHub()
+  }, [])
 
   const resetGame = () => {
     setPlayer('')
