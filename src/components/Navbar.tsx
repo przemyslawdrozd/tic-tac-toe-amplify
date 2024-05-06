@@ -5,7 +5,7 @@ import logo from '../assets/tix-tac-toe-logo.svg'
 import { LogoutButton } from './StyledComponents'
 
 const Navbar = () => {
-  const { player, resetGame, currentGame } = useStateContext()
+  const { userData, resetGame, currentGame } = useStateContext()
 
   const isLeaveGame = (): boolean =>
     !!currentGame?.IsWinner || !!currentGame?.Board?.every(v => v)
@@ -22,7 +22,7 @@ const Navbar = () => {
           </Button>
         )}
         <Heading level={4}>
-          Hello, <b>{player || 'Not selected'}</b>
+          Hello, <b>{userData?.username || 'Not selected'}</b>
         </Heading>
         <LogoutButton size='large' onClick={() => Auth.signOut()}>
           Logout
